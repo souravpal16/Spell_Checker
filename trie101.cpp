@@ -20,6 +20,9 @@ public:
 	Trie(){
 		root = new TrieNode();
 	};
+	TrieNode* getRoot(){
+		return this->root;
+	}
 	void insert(string word);
 	void display();
 	bool checkIfInTrie(string word);
@@ -83,6 +86,42 @@ bool Trie::checkIfInTrie(string word){
 	return temp->isEndOfWord;
 }
 
+vector<string> getSuggestions(string word, Trie* trie){
+	vector<string>result;
+	int size = word.size();
+	string temp = word;
+	for(int i=size - 1; i>=0; i--){
+		for(int j=0; j<26; j++){
+			string wordToBeSearched = "";
+			if(i == 0){
+				wordToBeSearched = char(j + 'a') + word.substr(i+1, size-i-1);
+			}
+			else if(i == size - 1){
+				//cout<<"r "<<word.substr(0,i)<<endl;
+				wordToBeSearched = word.substr(0, i) + char(j + 'a');
+			}
+			else{
+				wordToBeSearched = word.substr(0, i) + char(j + 'a') + word.substr(i+1, size - i - 1);
+			}
+			//cout<<wordToBeSearched<<endl;
+			if(trie->checkIfInTrie(wordToBeSearched)){
+				result.push_back(wordToBeSearched);
+			}
+		}
+	}
+	return result;
+}
+
+template<class T>
+void displaySuggestions(vector<T>& v, int maxWords){
+	int size = v.size();
+	int iter = min(size, maxWords);
+	for(int i=0; i<iter; i++){
+		cout<<v[i]<<" ";
+	}
+	cout<<'\n';
+}
+
 int main(){
 	string line;
 	ifstream fin;
@@ -92,28 +131,85 @@ int main(){
 	printf("File opened\n");
 	while(fin){
 		getline(fin, line);
-		//cout<<line<<endl;
 		trie->insert(line);
 		c += 1;
-		// printf("inserting\n");
-		// if(c > 1000){
-		// 	break;
-		// }
 	}
-	//trie->display();
 	fin.close();
-	printf("Total words inserted: %d\n", c);
+	printf("Total words inserted: %d\n\n", c);
+
 	fin.open("testing_words.txt");
 	printf("Testing begin...\n");
-	while(fin){
-		getline(fin, line);
-		//cout<<"Looking for "<<line<<" "<<line.size()<<endl;
-		if(trie->checkIfInTrie(line)){
-			cout<<"Found: "<<line<<endl;
+
+	bool flag = true;
+	while(flag){
+		cout<<"1. Test a word\n";
+		cout<<"2. Exit\n";
+		cout<<"Enter a code: ";
+		int i;
+		cin>>i;
+		if(i == 1){
+			cout<<"Welcome to spell check\n";
+			cout<<"Enter a word to check: ";
+			//string line;
+			cin>>line;
+			if(trie->checkIfInTrie(line)){
+				cout<<"Found: "<<line<<endl<<endl;
+			}
+			else{
+				cout<<"Not Found: "<<line<<" "<<"in the dictionary"<<endl;
+				cout<<"You entered a wrong word\n";
+				cout<<"Do you want suggestions(y/n): ";
+				char s;
+				cin>>s;
+				if(s == 'y'){
+					string wordEntered = "";
+					if(isUpper(line[0])){
+						wordEntered = char(line[0] - 'A' + 'a') + line.substr(1, line.size() - 1);
+					}
+					wordEntered = line;
+					vector<string> words = getSuggestions(wordEntered, trie);
+					cout<<"Suggestions: ";
+					displaySuggestions(words, 3);
+					cout<<"\n";
+				}
+				// else if(s == 'n'){
+				// 	cout<<"Have a good life!\n";
+				// }
+			}
+		}
+		else if(i == 2){
+			cout<<"Have a good day!!\n";
+			flag = false;
 		}
 		else{
-			cout<<"Not Found: "<<line<<endl;
+			cout<<"Warning! [Wrong Code Error]: Enter correct code(1/2)\n";
 		}
 	}
+	// while(fin){
+	// 	getline(fin, line);
+	// 	//cout<<"Looking for "<<line<<" "<<line.size()<<endl;
+	// 	if(trie->checkIfInTrie(line)){
+	// 		cout<<"Found: "<<line<<endl;
+	// 	}
+	// 	else{
+	// 		cout<<"Not Found: "<<line<<endl;
+	// 		cout<<"You entered a wrong word\n";
+	// 		cout<<"Do you want suggestions(y/n): ";
+	// 		char s;
+	// 		cin>>s;
+	// 		if(s == 'y'){
+	// 			string wordEntered = "";
+	// 			if(isUpper(line[0])){
+	// 				wordEntered = char(line[0] - 'A' + 'a') + line.substr(1, line.size() - 1);
+	// 			}
+	// 			vector<string> words = getSuggestions(wordEntered, trie);
+	// 			cout<<"Suggestions: ";
+	// 			displaySuggestions(words, 3);
+	// 		}
+	// 		else if(s == 'n'){
+	// 			cout<<"Have a good life!\n";
+	// 		}
+	// 	}
+	// }
 	fin.close();
 }
